@@ -2,10 +2,10 @@
   "manifest_version": 3,
   "name": "My Chrome Extension",
   "version": "1.0",
-  "description": "Interact with LeetCode webpage",
+  "description": "Interact with LeetCode webpage 2.0",
   "permissions": [
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback",
+    "webNavigation",
     "storage",
     "tabs",
     "activeTab",

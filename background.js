@@ -14,7 +14,25 @@ const userState = {
 };
 
 
-
+function onMessageReceived(message, sender, sendResponse) {
+    switch (message.action) {
+      case "userClickedSubmit":
+        state.lastSubmissionDate = new Date();
+        state.solvedListenerActive = true;
+        console.log(
+          "User clicked submit, adding listener", 
+        );
+        chrome.webRequest.onCompleted.addListener(
+          checkIfUserSolvedProblem, 
+          { urls: ["*://leetcode.com/submissions/detail/*/check/"] }
+        );
+        break;
+      
+      default:
+        console.warn("Unknown message action:", message.action);
+    }
+  }
+  
 
 
 async function getLeetCodePOTD() {
@@ -142,8 +160,4 @@ chrome.runtime.onInstalled.addListener(async () => {
     
   });
 
-const checkIfUserSolvedProblem = async(details) =>{
-    
-}
-
-// fetch using api and then put into storage
+chrome.runtime.onMessage.addListener(onMessageRecieved);

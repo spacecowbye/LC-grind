@@ -1,3 +1,1 @@
-document.addEventListener("DOMContentLoaded",() =>{
-    console.log("wow");
-})
+console.log("Content script loaded!");

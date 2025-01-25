@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "My Chrome Extension",
+  "version": "1.0",
+  "description": "Interact with LeetCode webpage",
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "storage",
+    "tabs",
+    "activeTab",
+    "alarms",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+     "type": "module"
+  },
+  "content_scripts": [
+   {
+     "matches": ["https://leetcode.com/problems/*/description/*"],
+     "js": ["content.js"]
+   }
+ ]
+}
+

@@ -1,4 +1,4 @@
-const observer = new MutationObserver((mutations) => {
+let observer = new MutationObserver((mutations) => {
     const submitButton = document.querySelector('[data-e2e-locator="console-submit-button"]');
 
     if (submitButton) {

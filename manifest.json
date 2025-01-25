@@ -5,7 +5,7 @@
   "description": "Interact with LeetCode webpage 2.0",
   "permissions": [
     "declarativeNetRequest",
-    "webNavigation",
+    "scripting",
     "storage",
     "tabs",
     "activeTab",

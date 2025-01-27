@@ -10,14 +10,37 @@ const isLeetcodeSubmitUrl = (url) => {
     return isLeetcodeUrl(url) && url.includes('submissions'); 
 }
 
+
+  
 const userState = {
     potd_solved: false,
     problem: {
         url: undefined,
         title: undefined,
         difficulty: undefined
-    }
+    },
+    lastSubmissionDate : undefined,
 };
+
+function onMessageReceived(
+    message,
+    sender,
+    sendResponse
+  ) {
+    switch (message.action) {
+      case "userClickedSubmit":
+        t
+        console.log(
+          "User clicked submit, adding listener"
+        )
+        // chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
+        //   urls: ["*://leetcode.com/submissions/detail/*/check/"]
+        // })
+        break
+      default:
+        console.warn("Unknown message action:", message.action)
+    }
+  }
 
 async function getLeetCodePOTD() {
     const query = {
@@ -128,37 +151,46 @@ async function updatePotd() {
 }
 
 // THINGS TO DO WHEN THE EXTENSION IS INSTALLED
-chrome.runtime.onInstalled.addListener(async () => {
-    const storedProblem = await new Promise((resolve) =>
-        chrome.storage.local.get("problem", (data) => resolve(data.problem))
-    );
 
-    if (storedProblem) {
-        // Initialize userState from stored data
-        userState.problem = {
-            url: storedProblem.fullLink,
-            title: storedProblem.title,
-            difficulty: storedProblem.difficulty,
-        };
-        console.log("POTD loaded from storage:", userState.problem);
-    } else {
-        // Fetch and store new POTD if not available in storage
-        await updatePotd();
-    }
-
-    const redirectUrl = userState.problem.url;
-    if (redirectUrl) {
-        await setRedirectRule(redirectUrl);
-    }
-});
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && isLeetcodeUrl(tab.url) && !isLeetcodeSubmitUrl(tab.url)) {
         // Inject the content script only if it's a problem page and not a submission page
         chrome.scripting.executeScript({
             target: { tabId: tabId },
-            files: ["content.js"], // Replace with your actual content script file name
+            files: ["content.js"], 
         });
         console.log("Content script injected on LeetCode problem page.");
     }
 });
+
+function createMidnightAlarm() {
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0); // Set to midnight
+    const timeUntilMidnight = midnight.getTime() - now.getTime();
+
+    chrome.alarms.create("midnightAlarm", { when: Date.now() + timeUntilMidnight });
+    console.log("Midnight alarm created for:", midnight.toLocaleString());
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === "midnightAlarm") {
+        console.log("Midnight alarm triggered!");
+
+        // Perform the required actions here
+        updatePotd(); // Example: Update the Problem of the Day
+        createMidnightAlarm(); // Schedule the next midnight alarm
+    }
+});
+
+chrome.runtime.onInstalled.addListener(async () => {
+    createMidnightAlarm();
+    await updatePotd();
+    const redirectUrl = userState.problem.url;
+    if (redirectUrl) {
+        await setRedirectRule(redirectUrl);
+    }
+});
+
+chrome.runtime.onMessage.addListener(onMessageReceived)

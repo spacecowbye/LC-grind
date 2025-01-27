@@ -246,9 +246,6 @@ const checkIfUserSolvedProblem = async (details) => {
               })
               chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
              
-                if (userState.lastAttemptedUrl) {
-                    chrome.tabs.update({ url: state.lastAttemptedUrl })
-                }
             }
           } catch (error) {
             console.error("Error:", error)

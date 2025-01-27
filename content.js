@@ -19,4 +19,4 @@ let observer = new MutationObserver((mutations) => {
     subtree: true
   });
 
-console.log("Content script why are you not wokring");
+  

@@ -2,16 +2,16 @@ const LEETCODE_URL = "https://leetcode.com";
 const RULE_ID = 1;
 
 const isLeetcodeUrl = (url) => {
-    return url.includes(LEETCODE_URL); 
+    return url.includes(LEETCODE_URL);
 }
 
 
 const isLeetcodeSubmitUrl = (url) => {
-    return isLeetcodeUrl(url) && url.includes('submissions'); 
+    return isLeetcodeUrl(url) && url.includes('submissions');
 }
 
 
-  
+
 const userState = {
     potd_solved: false,
     problem: {
@@ -19,28 +19,30 @@ const userState = {
         title: undefined,
         difficulty: undefined
     },
-    lastSubmissionDate : undefined,
+    lastSubmissionDate: new Date(0),
+    lastAttemptedUrl: null,
+    submitListenerActive : true,
 };
 
 function onMessageReceived(
     message,
     sender,
     sendResponse
-  ) {
+) {
     switch (message.action) {
-      case "userClickedSubmit":
-        t
-        console.log(
-          "User clicked submit, adding listener"
-        )
-        // chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
-        //   urls: ["*://leetcode.com/submissions/detail/*/check/"]
-        // })
-        break
-      default:
-        console.warn("Unknown message action:", message.action)
+        case "userClickedSubmit":
+            console.log(
+                "User clicked submit, adding listener"
+            )
+            userState.submitListenerActive = true;
+            chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
+                urls: ["*://leetcode.com/submissions/detail/*/check/"]
+            })
+            break
+        default:
+            console.warn("Unknown message action:", message.action)
     }
-  }
+}
 
 async function getLeetCodePOTD() {
     const query = {
@@ -150,15 +152,13 @@ async function updatePotd() {
     });
 }
 
-// THINGS TO DO WHEN THE EXTENSION IS INSTALLED
-
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && isLeetcodeUrl(tab.url) && !isLeetcodeSubmitUrl(tab.url)) {
         // Inject the content script only if it's a problem page and not a submission page
         chrome.scripting.executeScript({
             target: { tabId: tabId },
-            files: ["content.js"], 
+            files: ["content.js"],
         });
         console.log("Content script injected on LeetCode problem page.");
     }
@@ -171,18 +171,92 @@ function createMidnightAlarm() {
     const timeUntilMidnight = midnight.getTime() - now.getTime();
 
     chrome.alarms.create("midnightAlarm", { when: Date.now() + timeUntilMidnight });
-    console.log("Midnight alarm created for:", midnight.toLocaleString());
+    console.log(`Midnight alarm created at ${now.toLocaleString()}  for: ${midnight.toLocaleString()}`);
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === "midnightAlarm") {
         console.log("Midnight alarm triggered!");
 
-        // Perform the required actions here
-        updatePotd(); // Example: Update the Problem of the Day
-        createMidnightAlarm(); // Schedule the next midnight alarm
+        
+        updatePotd(); 
+        createMidnightAlarm(); 
     }
 });
+
+const checkIfUserSolvedProblem = async (details) => {
+    if (userState.potd_solved) {
+        return;
+    }
+
+    let currentURL = "";
+    try {
+        const [activeTab] = await new Promise((resolve) => {
+            chrome.tabs.query({ active: true, currentWindow: true }, resolve);
+        });
+
+        currentURL = activeTab.url;
+        console.log(currentURL);
+    } catch (error) {
+        console.error("Error getting active tab:", error);
+        return;
+    }
+    const problemUrl = userState.problem.url;
+    const sameUrl =
+      problemUrl === currentURL || problemUrl + "description/" === currentURL
+  
+    if (!sameUrl) {
+      return;
+    }
+
+    if(userState.submitListenerActive){
+        userState.submitListenerActive = false;
+        chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
+        console.log("Submit listener turned off");
+        
+    }
+    const url = details.url;
+
+    if(isLeetcodeUrl(url) && url.includes('/check/')){
+        try {
+            const response = await fetch(details.url)
+            const data = await response.json()
+            if (data.state === "STARTED" || data.state === "PENDING") {
+              if (!userState.submitListenerActive) {
+                userState.submitListenerActive = true
+                chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
+                  urls: ["*://leetcode.com/submissions/detail/*/check/"]
+                })
+              }
+              return
+            }
+            if (data.status_msg !== "Accepted") {   
+                
+              return
+            }
+            if (
+              data.status_msg === "Accepted" &&
+              data.state === "SUCCESS" &&
+              !data.code_answer
+            ) {
+
+              userState.leetcodeProblemSolved = true
+              chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: [RULE_ID]
+              })
+              chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
+             
+                if (userState.lastAttemptedUrl) {
+                    chrome.tabs.update({ url: state.lastAttemptedUrl })
+                }
+            }
+          } catch (error) {
+            console.error("Error:", error)
+          }   
+    }
+
+}
+
 
 chrome.runtime.onInstalled.addListener(async () => {
     createMidnightAlarm();

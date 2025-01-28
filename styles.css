@@ -1,161 +1,180 @@
 body {
-    font-family: 'Inter', Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #121212; /* Deep gray background */
-    height: 100vh;
-    color: #e0e0e0; /* Subtle off-white text */
-  }
-  
-  .container {
-    width: 320px;
-    height: 450px;
-    background: #1a1a1a; /* Slightly lighter gray than the background */
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 24px;
-    text-align: center;
-  }
-  
-  .header {
-    margin-bottom: 12px;
-  }
-  
-  .title {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: #ffd700; /* Muted gold */
-    margin: 0;
-  }
-  
-  .subtitle {
-    font-size: 1rem;
-    font-weight: 400;
-    color: #b0b0b0; /* Muted gray */
-    margin: 8px 0 0;
-  }
-  
-  .question-details {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #a0c4ff; /* Subtle blue for contrast */
-    margin: 0;
-    line-height: 1.5;
-  }
+  font-family: 'Inter', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #121212;
+  height: 100vh;
+  color: #e0e0e0;
+}
 
-  .difficulty-container {
-    margin-top: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px; /* Reduce space between label and value */
-  }
-  
-  .difficulty-label {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #ffffff; /* White for the label */
-  }
-  
-  .difficulty-value {
-    font-size: 1.2rem;
-    font-weight: 600;
-  }
-  
-  
-  .solve-now {
-    display: inline-block;
-    margin-top: 24px;
-    padding: 12px 24px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #ffffff;
-    background-color: #388e3c; /* Muted green */
-    border: none;
-    border-radius: 8px;
-    text-decoration: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-  
-  .solve-now:hover {
-    text-decoration: underline;
-  }
-  
-  .solve-now:focus {
-    outline: none;
-    background-color: #4caf50; /* Slightly brighter green for focus */
-  }
-  
-  .solve-button {
-    display: inline-block;
-    margin-top: 16px;
-    padding: 12px 24px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #ffffff;
-    background-color: #4caf50; /* Greenish background */
-    border: none;
-    border-radius: 8px;
-    text-decoration: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease, text-decoration 0.3s ease; /* Smooth transitions */
-  }
-  
-  .solve-button:hover {
-    background-color: #388e3c; /* Darker green on hover */
-    text-decoration: underline; /* Underline effect */
-  }
-  
-  .solve-button:focus {
-    outline: none;
-    background-color: #2e7d32; /* Even darker green when focused */
-  }
-  
-  
+.container {
+  width: 320px;
+  height: 450px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+  text-align: center;
+}
+
+.header {
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #ffd700;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #b0b0b0;
+  margin: 8px 0 0;
+}
+
+.question-details {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #a0c4ff;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.difficulty-container {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.difficulty-label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.difficulty-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.solve-button {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #4caf50;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.solve-button:hover {
+  background-color: #388e3c;
+  text-decoration: underline;
+}
+
+.solve-button:focus {
+  outline: none;
+  background-color: #2e7d32;
+}
+
 .streak-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 20px;
-  }
-  
-  /* Styles for Current Streak box */
-  .streak-box.current {
-    width: 45%;
-    background-color: #ff6f91; /* Soft pink shade */
-    color: #ffffff; /* White text */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    text-align: center;
-    padding: 16px;
-    font-family: Arial, sans-serif;
-  }
-  
-  /* Styles for Max Streak box */
-  .streak-box.max {
-    width: 45%;
-    background-color: #6fafff; /* Soft blue shade */
-    color: #ffffff; /* White text */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    text-align: center;
-    padding: 16px;
-    font-family: Arial, sans-serif;
-  }
-  
-  
-  .streak-value {
-    font-size: 1.8rem;
-    font-weight: bold;
-  }
-  
-  
-  .streak-label {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-top: 8px;
-  }
-  
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+}
+
+.streak-box.current {
+  width: 45%;
+  background-color: #ff6f91;
+  color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  text-align: center;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.streak-box.max {
+  width: 45%;
+  background-color: #6fafff;
+  color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  text-align: center;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.streak-value {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.streak-label {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+
+.checkbox-container {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #e0e0e0;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #4caf50;
+  border-radius: 4px;
+  background-color: #1a1a1a;
+  outline: none;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+  background-color: #4caf50;
+  border-color: #388e3c;
+}
+
+.checkbox-label .custom-checkbox {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+.toggle-label {
+  font-size: 1rem;
+  color: #e0e0e0;
+  margin-left: 4px;
+  user-select: none;
+}

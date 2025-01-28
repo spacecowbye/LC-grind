@@ -20,43 +20,31 @@ const userState = {
     lastSubmissionDate: new Date(0),
     lastAttemptedUrl: null,
     submitListenerActive : undefined,
+
 };
 
-function onMessageReceived(
-    message,
-    sender,
-    sendResponse
-) {
-    switch (message.action) {
-        case "userClickedSubmit":
-            console.log(
-                "User clicked submit, adding listener"
-            )
-            userState.submitListenerActive = true;
-            chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
-                urls: ["*://leetcode.com/submissions/detail/*/check/"]
-            })
-            break
-        default:
-            console.warn("Unknown message action:", message.action)
-    }
-}
 
 
 
 async function updateStorage() {
-    const isRedirectEnabled = await chrome.storage.local.get('isRedirectEnabled');
+    const { isRedirectEnabled = true } = await chrome.storage.local.get('isRedirectEnabled');
     const { data } = await getLeetCodePOTD();
     const { link, question } = data.activeDailyCodingChallengeQuestion;
     const title = question.title;
     const fullLink = `${LEETCODE_URL}${link}`;
     const difficulty = question.difficulty;
     updateUserState(title, fullLink, difficulty);
-    if (!state.leetcodeProblemSolved && isRedirectEnabled)
-        await setRedirectRule(problem.url)
+    if (!userState.potd_solved && isRedirectEnabled)
+        await setRedirectRule(fullLink)
+    else{
+        chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [RULE_ID]
+          })
+    }
+
     chrome.storage.local.set({ problem: { title, fullLink, difficulty } }, () => {
         console.log("POTD put in storage");
-    });
+    })
 }
 
 function updateUserState(title, fullLink, difficulty) {
@@ -74,7 +62,11 @@ function onMessageReceived(
     sender,
     sendResponse
 ) {
+    
     switch (message.action) {
+        case "redirectRuleChanged":
+            updateStorage();
+            break;
         case "userClickedSubmit":
             console.log(
                 "User clicked submit, adding listener"
@@ -260,14 +252,16 @@ const checkIfUserSolvedProblem = async (details) => {
               chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: [RULE_ID]
               })
+              
+              //await updateStorage();
               chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
              
             }
           } catch (error) {
             console.error("Error:", error)
           }   
-    }
-
+    
+        }
 }
 
 

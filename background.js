@@ -1,3 +1,4 @@
+
 const LEETCODE_URL = "https://leetcode.com";
 const RULE_ID = 1;
 
@@ -5,12 +6,9 @@ const isLeetcodeUrl = (url) => {
     return url.includes(LEETCODE_URL);
 }
 
-
 const isLeetcodeSubmitUrl = (url) => {
     return isLeetcodeUrl(url) && url.includes('submissions');
 }
-
-
 
 const userState = {
     potd_solved: false,
@@ -21,8 +19,55 @@ const userState = {
     },
     lastSubmissionDate: new Date(0),
     lastAttemptedUrl: null,
-    submitListenerActive : true,
+    submitListenerActive : undefined,
 };
+
+function onMessageReceived(
+    message,
+    sender,
+    sendResponse
+) {
+    switch (message.action) {
+        case "userClickedSubmit":
+            console.log(
+                "User clicked submit, adding listener"
+            )
+            userState.submitListenerActive = true;
+            chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
+                urls: ["*://leetcode.com/submissions/detail/*/check/"]
+            })
+            break
+        default:
+            console.warn("Unknown message action:", message.action)
+    }
+}
+
+
+
+async function updateStorage() {
+    const isRedirectEnabled = await chrome.storage.local.get('isRedirectEnabled');
+    const { data } = await getLeetCodePOTD();
+    const { link, question } = data.activeDailyCodingChallengeQuestion;
+    const title = question.title;
+    const fullLink = `${LEETCODE_URL}${link}`;
+    const difficulty = question.difficulty;
+    updateUserState(title, fullLink, difficulty);
+    if (!state.leetcodeProblemSolved && isRedirectEnabled)
+        await setRedirectRule(problem.url)
+    chrome.storage.local.set({ problem: { title, fullLink, difficulty } }, () => {
+        console.log("POTD put in storage");
+    });
+}
+
+function updateUserState(title, fullLink, difficulty) {
+    userState.potd_solved = false;
+    userState.problem.difficulty = difficulty;
+    userState.problem.title = title;
+    userState.problem.url = fullLink;
+}
+
+////// below this line nothing needs to be changed
+
 
 function onMessageReceived(
     message,
@@ -124,35 +169,6 @@ async function setRedirectRule(url) {
     }
 }
 
-async function initializePOTD() {
-    try {
-        const POTD = await getLeetCodePOTD();
-        return POTD;
-    } catch (error) {
-        console.error("Error initializing POTD:", error);
-    }
-}
-
-function updateUserState(title, fullLink, difficulty) {
-    userState.potd_solved = false;
-    userState.problem.difficulty = difficulty;
-    userState.problem.title = title;
-    userState.problem.url = fullLink;
-}
-
-async function updatePotd() {
-    const { data } = await initializePOTD();
-    const { link, question } = data.activeDailyCodingChallengeQuestion;
-    const title = question.title;
-    const fullLink = `${LEETCODE_URL}${link}`;
-    const difficulty = question.difficulty;
-    updateUserState(title, fullLink, difficulty);
-    chrome.storage.local.set({ problem: { title, fullLink, difficulty } }, () => {
-        console.log("POTD put in storage");
-    });
-}
-
-
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && isLeetcodeUrl(tab.url) && !isLeetcodeSubmitUrl(tab.url)) {
         // Inject the content script only if it's a problem page and not a submission page
@@ -179,7 +195,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         console.log("Midnight alarm triggered!");
 
         
-        updatePotd(); 
+        updateStorage();
         createMidnightAlarm(); 
     }
 });
@@ -257,11 +273,11 @@ const checkIfUserSolvedProblem = async (details) => {
 
 chrome.runtime.onInstalled.addListener(async () => {
     createMidnightAlarm();
-    await updatePotd();
-    const redirectUrl = userState.problem.url;
-    if (redirectUrl) {
-        await setRedirectRule(redirectUrl);
-    }
+    updateStorage();
 });
+
+
+
+
 
 chrome.runtime.onMessage.addListener(onMessageReceived)

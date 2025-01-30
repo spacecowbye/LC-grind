@@ -255,14 +255,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 async function updateStreak() {
     let { currentStreak } = await chrome.storage.local.get('currentStreak');
     let { maxStreak } = await chrome.storage.local.get('maxStreak');
-
-    console.log("Retrieved values:", currentStreak, maxStreak); 
-
     let currentStreakVal = Number(currentStreak) || 0;
     let maxStreakVal = Number(maxStreak) || 0;
-
-    console.log("Processed values:", currentStreakVal, maxStreakVal); 
-
     let newStreak = currentStreakVal + 1;
     let best = Math.max(newStreak, maxStreakVal);
 
@@ -317,19 +311,16 @@ async function handleRedirectRule() {
     }
 }
 
-
 async function setConstants(){
     await chrome.storage.local.set({'isRedirectEnabled' : true});
     await chrome.storage.local.set({'currentStreak' : 0});
     await chrome.storage.local.set({'maxStreak' : 0});
 
 }
-
 chrome.runtime.onInstalled.addListener(async () => {
     setConstants();
     createMidnightAlarm();
     updateStorage();
 });
-
 
 chrome.runtime.onMessage.addListener(onMessageReceived)

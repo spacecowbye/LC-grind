@@ -222,7 +222,14 @@ const checkIfUserSolvedProblem = async (details) => {
                     removeRuleIds: [RULE_ID]
                 })
                 chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
-    
+                chrome.storage.local.get(["problem"], (data) => {
+                    if (data.problem) {
+                        data.problem.status = true; // Update status here
+                        chrome.storage.local.set({ problem: data.problem });
+                    } else {
+                        console.log("Problem not found in storage");
+                    }
+                });
             }
         } catch (error) {
             console.error("Error:", error)
@@ -252,7 +259,7 @@ async function updateStreak() {
     await chrome.storage.local.set({ 'maxStreak': best });
 }
 async function updateStorage() {
-    
+    const status = false;
     const { isRedirectEnabled = true } = await chrome.storage.local.get('isRedirectEnabled');
     const { data } = await getLeetCodePOTD();
     const { link, question } = data.activeDailyCodingChallengeQuestion;
@@ -268,7 +275,7 @@ async function updateStorage() {
         })
     }
     
-    chrome.storage.local.set({ problem: { title, fullLink, difficulty } }, () => {
+    chrome.storage.local.set({ problem: { title, fullLink, difficulty,status } }, () => {
         console.log("POTD put in storage");
         console.log(`Redirect Status : ${isRedirectEnabled}`);
     })
@@ -286,7 +293,7 @@ async function handleRedirectRule() {
             return;
         }
 
-        if (isRedirectEnabled) {
+        if (isRedirectEnabled && problem.status) {
             await setRedirectRule(problem.fullLink);
         } else {
             chrome.declarativeNetRequest.updateDynamicRules({

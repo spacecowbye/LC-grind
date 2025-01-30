@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "My Chrome Extension",
+  "name": "LC grind" ,
   "version": "1.0",
-  "description": "Interact with LeetCode webpage 2.0",
+  "description": "NO MORE BROWSING TILL YOU SOLVE THE PROBLEM OF THE DAY",
   "permissions": [
     "declarativeNetRequest",
     "scripting",

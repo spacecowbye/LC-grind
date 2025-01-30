@@ -216,13 +216,13 @@ const checkIfUserSolvedProblem = async (details) => {
                 data.state === "SUCCESS" &&
                 !data.code_answer
             ) {
-
+                await updateStreak();
                 userState.leetcodeProblemSolved = true
                 chrome.declarativeNetRequest.updateDynamicRules({
                     removeRuleIds: [RULE_ID]
                 })
                 chrome.webRequest.onCompleted.removeListener(checkIfUserSolvedProblem)
-
+    
             }
         } catch (error) {
             console.error("Error:", error)
@@ -252,10 +252,23 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 
-async function updateStreak(){
-    
-}
+async function updateStreak() {
+    let { currentStreak } = await chrome.storage.local.get('currentStreak');
+    let { maxStreak } = await chrome.storage.local.get('maxStreak');
 
+    console.log("Retrieved values:", currentStreak, maxStreak); 
+
+    let currentStreakVal = Number(currentStreak) || 0;
+    let maxStreakVal = Number(maxStreak) || 0;
+
+    console.log("Processed values:", currentStreakVal, maxStreakVal); 
+
+    let newStreak = currentStreakVal + 1;
+    let best = Math.max(newStreak, maxStreakVal);
+
+    await chrome.storage.local.set({ 'currentStreak': newStreak });
+    await chrome.storage.local.set({ 'maxStreak': best });
+}
 async function updateStorage() {
     
     const { isRedirectEnabled = true } = await chrome.storage.local.get('isRedirectEnabled');
@@ -277,6 +290,7 @@ async function updateStorage() {
         console.log("POTD put in storage");
         console.log(`Redirect Status : ${isRedirectEnabled}`);
     })
+
 }
 
 async function handleRedirectRule() {
@@ -304,12 +318,15 @@ async function handleRedirectRule() {
 }
 
 
-async function enableRedirect(){
+async function setConstants(){
     await chrome.storage.local.set({'isRedirectEnabled' : true});
+    await chrome.storage.local.set({'currentStreak' : 0});
+    await chrome.storage.local.set({'maxStreak' : 0});
+
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
-    enableRedirect();
+    setConstants();
     createMidnightAlarm();
     updateStorage();
 });

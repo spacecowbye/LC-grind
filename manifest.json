@@ -22,11 +22,10 @@
     "service_worker": "background.js",
      "type": "module"
   },
-  "content_scripts": [
-   {
-     "matches": ["https://leetcode.com/problems/*/description/*"],
-     "js": ["content.js"]
-   }
- ]
+  "content_scripts": [{
+    "matches": ["*://*.leetcode.com/problems/*"],
+    "exclude_matches": ["*://*.leetcode.com/problems/*/submit/*"],
+    "js": ["content.js"]
+  }]
 }
 

@@ -1,22 +1,22 @@
-let observer = new MutationObserver((mutations) => {
-    const submitButton = document.querySelector('[data-e2e-locator="console-submit-button"]');
 
-    if (submitButton) {
+if (typeof window._leetcodeHelperObserver === 'undefined') {
+  window._leetcodeHelperObserver = new MutationObserver((mutations) => {
+      const submitButton = document.querySelector('[data-e2e-locator="console-submit-button"]');
 
-      submitButton.addEventListener("click", (event) => {
-        console.log("Submit button clicked!");
-        chrome.runtime.sendMessage({ action: "userClickedSubmit" })
+      if (submitButton && !submitButton._hasClickListener) {
+          submitButton._hasClickListener = true;
+          submitButton.addEventListener("click", (event) => {
+              console.log("Submit button clicked!");
+              chrome.runtime.sendMessage({ action: "userClickedSubmit" });
+          });
 
-      });
-
-      observer.disconnect(); // Stop observing once button is found
-    }
+          window._leetcodeHelperObserver.disconnect(); 
+      }
   });
 
   // Start observing the entire document
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
+  window._leetcodeHelperObserver.observe(document.body, {
+      childList: true,
+      subtree: true
   });
-
-  
+}

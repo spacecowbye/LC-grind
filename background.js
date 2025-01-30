@@ -28,6 +28,12 @@ function onMessageReceived(
     sendResponse
 ) {
     switch (message.action) {
+        case "redirectTurnedOn":
+            handleRedirectRule();
+            break;
+        case "redirectTurnedOff":
+            handleRedirectRule();
+            break;
         case "userClickedSubmit":
             console.log(
                 "User clicked submit, adding listener"
@@ -231,7 +237,6 @@ function createMidnightAlarm() {
     const midnight = new Date();
     midnight.setHours(24, 0, 0, 0); 
     const timeUntilMidnight = midnight.getTime() - now.getTime();
-
     chrome.alarms.create("midnightAlarm", { when: Date.now() + timeUntilMidnight });
     console.log(`Midnight alarm created at ${now.toLocaleString()}  for: ${midnight.toLocaleString()}`);
 }
@@ -252,6 +257,7 @@ async function updateStreak(){
 }
 
 async function updateStorage() {
+    
     const { isRedirectEnabled = true } = await chrome.storage.local.get('isRedirectEnabled');
     const { data } = await getLeetCodePOTD();
     const { link, question } = data.activeDailyCodingChallengeQuestion;
@@ -266,16 +272,44 @@ async function updateStorage() {
             removeRuleIds: [RULE_ID]
         })
     }
-
+    
     chrome.storage.local.set({ problem: { title, fullLink, difficulty } }, () => {
         console.log("POTD put in storage");
         console.log(`Redirect Status : ${isRedirectEnabled}`);
     })
 }
 
+async function handleRedirectRule() {
+    try {
+        // Fetch stored values
+        const { isRedirectEnabled = true } = await chrome.storage.local.get('isRedirectEnabled');
+        const { problem } = await chrome.storage.local.get('problem');
 
+        if (!problem?.fullLink) {
+            console.warn("No problem data found in storage.");
+            return;
+        }
+
+        if (isRedirectEnabled) {
+            await setRedirectRule(problem.fullLink);
+        } else {
+            chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: [RULE_ID]
+            });
+            console.log("Redirect rule removed");
+        }
+    } catch (error) {
+        console.error("Error handling redirect rule:", error);
+    }
+}
+
+
+async function enableRedirect(){
+    await chrome.storage.local.set({'isRedirectEnabled' : true});
+}
 
 chrome.runtime.onInstalled.addListener(async () => {
+    enableRedirect();
     createMidnightAlarm();
     updateStorage();
 });

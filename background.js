@@ -5,7 +5,6 @@ const isLeetcodeUrl = (url) => {
     return url.includes(LEETCODE_URL);
 }
 
-
 const isLeetcodeSubmitUrl = (url) => {
     return isLeetcodeUrl(url) && url.includes('submissions');
 }
@@ -20,6 +19,7 @@ const userState = {
     lastSubmissionDate: new Date(0),
     lastAttemptedUrl: null,
     submitListenerActive: true,
+    lastAttemptedUrlListenerActive : false,
 };
 
 function onMessageReceived(
@@ -240,18 +240,6 @@ function createMidnightAlarm() {
     chrome.alarms.create("midnightAlarm", { when: Date.now() + timeUntilMidnight });
     console.log(`Midnight alarm created at ${now.toLocaleString()}  for: ${midnight.toLocaleString()}`);
 }
-
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === "midnightAlarm") {
-        console.log("Midnight alarm triggered!");
-
-
-        updateStorage();
-        createMidnightAlarm();
-    }
-});
-
-
 async function updateStreak() {
     let { currentStreak } = await chrome.storage.local.get('currentStreak');
     let { maxStreak } = await chrome.storage.local.get('maxStreak');
@@ -323,4 +311,15 @@ chrome.runtime.onInstalled.addListener(async () => {
     updateStorage();
 });
 
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === "midnightAlarm") {
+        console.log("Midnight alarm triggered!");
+
+
+        updateStorage();
+        createMidnightAlarm();
+    }
+});
+
 chrome.runtime.onMessage.addListener(onMessageReceived)
+

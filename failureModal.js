@@ -1,5 +1,5 @@
 function createFailureModal() {
-    const leetcodeFailureSayings = [  
+    const failureSayings = [  
         "Expected: 42, Your Output: null. So close!",  
         "Passed 5/5 sample cases! Failed 98/100 hidden cases. Classic.",  
         "Edge cases? Never heard of her.",  
@@ -8,7 +8,7 @@ function createFailureModal() {
         "Beats 100% of submissions... in memory usage. Congrats?",    
         "Memory Limit Exceeded? Just buy more RAM!",  
         "Brute force worked? Time to buy a lottery ticket.",  
-        "After careful consieration.... mails incoming"
+        "Wrong Answer? Yeah, time to switch majors",  
     ];  
     
     

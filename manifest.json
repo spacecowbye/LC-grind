@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "LC grind" ,
   "version": "1.0",
-  "description": "NO MORE BROWSING TILL YOU SOLVE THE PROBLEM OF THE DAY",
+  "description": "A meme extension forcing you to solve Leetcode POTD before you can browse.",
   "permissions": [
     "declarativeNetRequest",
     "scripting",

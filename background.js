@@ -134,38 +134,67 @@ async function setRedirectRule(url) {
   }
 }
 
-const injectSuccessModal = async (tabId) => {
-    const injectedScripts = await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      func: () => Boolean(window._successModalInjected),
-    });
-  
-    if (!injectedScripts[0].result) {
-      await chrome.scripting.executeScript({
+    const injectSuccessModal = async (tabId) => {
+        const injectedScripts = await chrome.scripting.executeScript({
         target: { tabId: tabId },
-        files: ["successModal.js"],
-      });
-  
-      
-      await chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        func: () => {
-          window._successModalInjected = true;
-        },
-      });
-    }
-  
+        func: () => Boolean(window._successModalInjected),
+        });
     
-    const {currentStreak = 0} = await chrome.storage.local.get('currentStreak');
-    await chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        func: (streak) => {
-          createModal(streak);
-        },
-        args: [currentStreak]  
-      });
-  };
+        if (!injectedScripts[0].result) {
+        await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            files: ["successModal.js"],
+        });
+    
+        
+        await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: () => {
+            window._successModalInjected = true;
+            },
+        });
+        }
+    
+        
+        const {currentStreak = 0} = await chrome.storage.local.get('currentStreak');
+        await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: (streak) => {
+            createModal(streak);
+            },
+            args: [currentStreak]  
+        });
+    };
 
+    const injectFailureModal = async (tabId) => {
+        const injectedScripts = await chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          func: () => Boolean(window._failureModalInjected),
+        });
+      
+        if (!injectedScripts[0].result) {
+          await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            files: ["failureModal.js"],
+          });
+    
+          await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: () => {
+              window._failureModalInjected = true;
+            },
+          });
+        }
+      
+        
+        await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: () => {
+              createFailureModal();
+            },
+        });
+    };
+    
 function updateUserState(title, fullLink, difficulty) {
   userState.potd_solved = false;
   userState.problem.difficulty = difficulty;
@@ -250,7 +279,8 @@ const checkIfUserSolvedProblem = async (details) => {
                 return
             }
             if (data.status_msg !== "Accepted") {
-
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                injectFailureModal(tab.id);
                 return
             }
             if (

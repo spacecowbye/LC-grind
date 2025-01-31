@@ -2,163 +2,205 @@ const LEETCODE_URL = "https://leetcode.com";
 const RULE_ID = 1;
 
 const isLeetcodeUrl = (url) => {
-    return url.includes(LEETCODE_URL);
-}
-
-const isLeetcodeSubmitUrl = (url) => {
-    return isLeetcodeUrl(url) && url.includes('submissions');
-}
-
-const userState = {
-    potd_solved: false,
-    problem: {
-        url: undefined,
-        title: undefined,
-        difficulty: undefined
-    },
-    lastSubmissionDate: new Date(0),
-    lastAttemptedUrl: null,
-    submitListenerActive: true,
-    lastAttemptedUrlListenerActive : false,
+  return url.includes(LEETCODE_URL);
 };
 
-function onMessageReceived(
-    message,
-    sender,
-    sendResponse
-) {
-    switch (message.action) {
-        case "redirectTurnedOn":
-            handleRedirectRule();
-            break;
-        case "redirectTurnedOff":
-            handleRedirectRule();
-            break;
-        case "userClickedSubmit":
-            console.log(
-                "User clicked submit, adding listener"
-            )
-            userState.submitListenerActive = true;
-            chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
-                urls: ["*://leetcode.com/submissions/detail/*/check/"]
-            })
-            break
-        default:
-            console.warn("Unknown message action:", message.action)
-    }
+const isLeetcodeSubmitUrl = (url) => {
+  return isLeetcodeUrl(url) && url.includes("submissions");
+};
+
+const userState = {
+  potd_solved: false,
+  problem: {
+    url: undefined,
+    title: undefined,
+    difficulty: undefined,
+  },
+  lastSubmissionDate: new Date(0),
+  lastAttemptedUrl: null,
+  submitListenerActive: true,
+  lastAttemptedUrlListenerActive: false,
+};
+
+function onMessageReceived(message, sender, sendResponse) {
+  switch (message.action) {
+    case "redirectTurnedOn":
+      handleRedirectRule();
+      break;
+    case "redirectTurnedOff":
+      handleRedirectRule();
+      break;
+    case "userClickedSubmit":
+      console.log("User clicked submit, adding listener");
+      userState.submitListenerActive = true;
+      chrome.webRequest.onCompleted.addListener(checkIfUserSolvedProblem, {
+        urls: ["*://leetcode.com/submissions/detail/*/check/"],
+      });
+      break;
+    default:
+      console.warn("Unknown message action:", message.action);
+  }
 }
 
 async function getLeetCodePOTD() {
-    const query = {
-        query: `
-        query questionOfToday {
-            activeDailyCodingChallengeQuestion {
-                date
-                userStatus
-                link
-                question {
-                    acRate
-                    difficulty
-                    freqBar
-                    frontendQuestionId: questionFrontendId
-                    isFavor
-                    paidOnly: isPaidOnly
-                    status
-                    title
-                    titleSlug
-                    hasVideoSolution
-                    hasSolution
-                    topicTags {
-                        name
-                        id
-                        slug
+  const query = {
+    query: `
+            query questionOfToday {
+                activeDailyCodingChallengeQuestion {
+                    date
+                    userStatus
+                    link
+                    question {
+                        acRate
+                        difficulty
+                        freqBar
+                        frontendQuestionId: questionFrontendId
+                        isFavor
+                        paidOnly: isPaidOnly
+                        status
+                        title
+                        titleSlug
+                        hasVideoSolution
+                        hasSolution
+                        topicTags {
+                            name
+                            id
+                            slug
+                        }
                     }
                 }
             }
-        }
-        `,
-    };
+            `,
+  };
 
-    try {
-        const response = await fetch("https://leetcode.com/graphql", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Referer: "https://leetcode.com",
-            },
-            body: JSON.stringify(query),
-        });
+  try {
+    const response = await fetch("https://leetcode.com/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Referer: "https://leetcode.com",
+      },
+      body: JSON.stringify(query),
+    });
 
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error("Failed to fetch POTD:", error);
-        return null;
-    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch POTD:", error);
+    return null;
+  }
 }
 
 async function setRedirectRule(url) {
-    const redirect_url = url;
-    const redirectRule = {
-        id: 1,
-        priority: 1,
-        action: {
-            type: "redirect",
-            redirect: { url: redirect_url }
-        },
-        condition: {
-            urlFilter: "*://*/*",
-            excludedInitiatorDomains: [
-                "leetcode.com",
-                "www.leetcode.com",
-                "example.com"
-            ],
-            resourceTypes: ["main_frame"]
-        }
-    };
+  const redirectRule = {
+    id: RULE_ID, // which is 1
+    priority: 1,
+    action: {
+      type: "redirect",
+      redirect: { url },
+    },
+    condition: {
+      urlFilter: "*://*/*",
+      excludedInitiatorDomains: [
+        "leetcode.com",
+        "www.leetcode.com",
+        "example.com",
+      ],
+      resourceTypes: ["main_frame"],
+    },
+  };
 
+  try {
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: [RULE_ID],
+    });
+
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      addRules: [redirectRule],
+    });
+
+    console.log("Redirect rule updated successfully to:", url);
+  } catch (error) {
+    console.error("Error updating redirect rule:", error);
     try {
-        chrome.declarativeNetRequest.updateDynamicRules({
-            removeRuleIds: [RULE_ID],
-            addRules: [redirectRule]
-        });
-        console.log("Redirect rule updated");
-    } catch (error) {
-        console.error("Error updating redirect rule:", error);
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [RULE_ID],
+        addRules: [redirectRule],
+      });
+      console.log("Redirect rule updated on second attempt");
+    } catch (secondError) {
+      console.error("Failed to update rule on second attempt:", secondError);
     }
+  }
 }
 
-
+const injectSuccessModal = async (tabId) => {
+    const injectedScripts = await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: () => Boolean(window._successModalInjected),
+    });
+  
+    if (!injectedScripts[0].result) {
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ["successModal.js"],
+      });
+  
+      
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: () => {
+          window._successModalInjected = true;
+        },
+      });
+    }
+  
+    
+    const {currentStreak = 0} = await chrome.storage.local.get('currentStreak');
+    await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: (streak) => {
+          createModal(streak);
+        },
+        args: [currentStreak]  
+      });
+  };
 
 function updateUserState(title, fullLink, difficulty) {
-    userState.potd_solved = false;
-    userState.problem.difficulty = difficulty;
-    userState.problem.title = title;
-    userState.problem.url = fullLink;
+  userState.potd_solved = false;
+  userState.problem.difficulty = difficulty;
+  userState.problem.title = title;
+  userState.problem.url = fullLink;
 }
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    if (changeInfo.status === "complete" && isLeetcodeUrl(tab.url) && !isLeetcodeSubmitUrl(tab.url)) {
-        // Checking if script is already injected
-        const injectedScripts = await chrome.scripting.executeScript({
-            target: { tabId: tabId },
-            func: () => Boolean(window._scriptInjected)
-        });
-        
-        if (!injectedScripts[0].result) {
-            await chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ["content.js"]
-            });
-            
-            // Set a flag in the page context
-            await chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                func: () => { window._scriptInjected = true; }
-            });
-            
-            console.log("Content script injected on LeetCode problem page.");
-        }
+  if (
+    changeInfo.status === "complete" &&
+    isLeetcodeUrl(tab.url) &&
+    !isLeetcodeSubmitUrl(tab.url)
+  ) {
+    // Checking if script is already injected
+    const injectedScripts = await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: () => Boolean(window._scriptInjected),
+    });
+
+    if (!injectedScripts[0].result) {
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ["content.js"],
+      });
+
+      // Set a flag in the page context
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: () => {
+          window._scriptInjected = true;
+        },
+      });
+
+      console.log("Content script injected on LeetCode problem page.");
     }
+  }
 });
 
 const checkIfUserSolvedProblem = async (details) => {
@@ -230,6 +272,8 @@ const checkIfUserSolvedProblem = async (details) => {
                         console.log("Problem not found in storage");
                     }
                 });
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                await injectSuccessModal(tab.id);
             }
         } catch (error) {
             console.error("Error:", error)
@@ -238,95 +282,122 @@ const checkIfUserSolvedProblem = async (details) => {
 
 }
 
-
 function createMidnightAlarm() {
-    const now = new Date();
-    const midnight = new Date();
-    midnight.setHours(24, 0, 0, 0); 
-    const timeUntilMidnight = midnight.getTime() - now.getTime();
-    chrome.alarms.create("midnightAlarm", { when: Date.now() + timeUntilMidnight });
-    console.log(`Midnight alarm created at ${now.toLocaleString()}  for: ${midnight.toLocaleString()}`);
+  const now = new Date();
+  const midnight = new Date();
+  midnight.setHours(24, 0, 0, 0);
+  const timeUntilMidnight = midnight.getTime() - now.getTime() + 30 * 60 * 1000; // extra buffer for leetcode to update POTD
+  chrome.alarms.create("midnightAlarm", {
+    when: Date.now() + timeUntilMidnight,
+  });
+  console.log(
+    `Midnight alarm created at ${now.toLocaleString()}  for: ${midnight.toLocaleString()}`
+  );
 }
 async function updateStreak() {
-    let { currentStreak } = await chrome.storage.local.get('currentStreak');
-    let { maxStreak } = await chrome.storage.local.get('maxStreak');
-    let currentStreakVal = Number(currentStreak) || 0;
-    let maxStreakVal = Number(maxStreak) || 0;
-    let newStreak = currentStreakVal + 1;
-    let best = Math.max(newStreak, maxStreakVal);
+  let { currentStreak } = await chrome.storage.local.get("currentStreak");
+  let { maxStreak } = await chrome.storage.local.get("maxStreak");
+  let currentStreakVal = Number(currentStreak) || 0;
+  let maxStreakVal = Number(maxStreak) || 0;
+  let newStreak = currentStreakVal + 1;
+  let best = Math.max(newStreak, maxStreakVal);
 
-    await chrome.storage.local.set({ 'currentStreak': newStreak });
-    await chrome.storage.local.set({ 'maxStreak': best });
+  await chrome.storage.local.set({ currentStreak: newStreak });
+  await chrome.storage.local.set({ maxStreak: best });
 }
 async function updateStorage() {
-    const status = false;
-    const { isRedirectEnabled = true } = await chrome.storage.local.get('isRedirectEnabled');
-    const { data } = await getLeetCodePOTD();
-    const { link, question } = data.activeDailyCodingChallengeQuestion;
-    const title = question.title;
-    const fullLink = `${LEETCODE_URL}${link}`;
-    const difficulty = question.difficulty;
-    updateUserState(title, fullLink, difficulty);
-    if (!userState.potd_solved && isRedirectEnabled)
-        await setRedirectRule(fullLink)
-    else {
-        chrome.declarativeNetRequest.updateDynamicRules({
-            removeRuleIds: [RULE_ID]
-        })
-    }
-    
-    chrome.storage.local.set({ problem: { title, fullLink, difficulty,status } }, () => {
-        console.log("POTD put in storage");
-        console.log(`Redirect Status : ${isRedirectEnabled}`);
-    })
+  const status = false;
+  const { isRedirectEnabled = true } = await chrome.storage.local.get(
+    "isRedirectEnabled"
+  );
+  const { data } = await getLeetCodePOTD();
+  const { link, question } = data.activeDailyCodingChallengeQuestion;
+  const title = question.title;
+  const fullLink = `${LEETCODE_URL}${link}`;
+  const difficulty = question.difficulty;
+  updateUserState(title, fullLink, difficulty);
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: [RULE_ID],
+  });
+  if (!userState.potd_solved && isRedirectEnabled) {
+    await setRedirectRule(fullLink);
+  } else {
+    chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: [RULE_ID],
+    });
+  }
 
+  chrome.storage.local.set(
+    { problem: { title, fullLink, difficulty, status } },
+    () => {
+      console.log("POTD put in storage");
+      console.log(`Redirect Status : ${isRedirectEnabled}`);
+    }
+  );
 }
 
 async function handleRedirectRule() {
-    try {
-        // Fetch stored values
-        const { isRedirectEnabled = true } = await chrome.storage.local.get('isRedirectEnabled');
-        const { problem } = await chrome.storage.local.get('problem');
+  try {
+    // Fetch stored values
+    const { isRedirectEnabled = true } = await chrome.storage.local.get(
+      "isRedirectEnabled"
+    );
+    const { problem } = await chrome.storage.local.get("problem");
 
-        if (!problem?.fullLink) {
-            console.warn("No problem data found in storage.");
-            return;
-        }
-
-        if (isRedirectEnabled && problem.status) {
-            await setRedirectRule(problem.fullLink);
-        } else {
-            chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [RULE_ID]
-            });
-            console.log("Redirect rule removed");
-        }
-    } catch (error) {
-        console.error("Error handling redirect rule:", error);
+    if (!problem?.fullLink) {
+      console.warn("No problem data found in storage.");
+      return;
     }
+
+    if (isRedirectEnabled && !problem.status) {
+      await setRedirectRule(problem.fullLink);
+    } else {
+      chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [RULE_ID],
+      });
+      console.log("Redirect rule removed");
+    }
+  } catch (error) {
+    console.error("Error handling redirect rule:", error);
+  }
 }
 
-async function setConstants(){
-    await chrome.storage.local.set({'isRedirectEnabled' : true});
-    await chrome.storage.local.set({'currentStreak' : 0});
-    await chrome.storage.local.set({'maxStreak' : 0});
-
+async function setConstants() {
+  await chrome.storage.local.set({ isRedirectEnabled: true });
+  await chrome.storage.local.set({ currentStreak: 0 });
+  await chrome.storage.local.set({ maxStreak: 0 });
+  await chrome.storage.local.set({ lastSubmission: new Date(0) });
 }
 chrome.runtime.onInstalled.addListener(async () => {
-    setConstants();
-    createMidnightAlarm();
-    updateStorage();
+  setConstants();
+  createMidnightAlarm();
+  updateStorage();
+  //tryResetStreak();
 });
 
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === "midnightAlarm") {
-        console.log("Midnight alarm triggered!");
+async function tryResetStreak() {
+  const result = await chrome.storage.local.get("lastSubmission");
+  const lastSubmissionDate = new Date(Number(result.lastSubmission));
+  const yesterday = new Date().getDate() - 1;
 
+  if (lastSubmissionDate.getDate() < yesterday) {
+    chrome.storage.local.set({ currentStreak: 0 });
+  }
+  console.log("From Try Reset Streak");
+  console.log(lastSubmissionDate, yesterday);
+}
 
-        updateStorage();
-        createMidnightAlarm();
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === "midnightAlarm") {
+    console.log("Midnight alarm triggered!");
+    try {
+      await updateStorage();
+      await createMidnightAlarm();
+      //await tryResetStreak();
+    } catch (error) {
+      console.error("Error handling midnight alarm:", error);
     }
+  }
 });
 
-chrome.runtime.onMessage.addListener(onMessageReceived)
-
+chrome.runtime.onMessage.addListener(onMessageReceived);

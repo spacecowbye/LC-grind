@@ -1,4 +1,3 @@
-
 if (typeof window._leetcodeHelperObserver === 'undefined') {
   window._leetcodeHelperObserver = new MutationObserver((mutations) => {
       const submitButton = document.querySelector('[data-e2e-locator="console-submit-button"]');

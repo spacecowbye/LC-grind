@@ -16,6 +16,11 @@
     "<all_urls>"
   ],
   "action": {
+    "default_icon": {
+    "16": "assets/image.png",
+    "48": "assets/image.png",
+    "128": "assets/image.png"
+  },
     "default_popup": "popup.html"
   },
   "background": {
@@ -24,8 +29,12 @@
   },
   "content_scripts": [{
     "matches": ["*://*.leetcode.com/problems/*"],
-    "exclude_matches": ["*://*.leetcode.com/problems/*/submit/*"],
-    "js": ["content.js"]
-  }]
+    "js": ["content.js", "successModal.js","failureModal.js"]
+  }],
+  "icons": {
+  "16": "assets/image.png",
+  "48": "assets/image.png",
+  "128": "assets/image.png"
+}
 }
 

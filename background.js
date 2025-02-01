@@ -399,7 +399,7 @@ async function setConstants() {
   await chrome.storage.local.set({ lastSubmission: new Date(0) });
 }
 chrome.runtime.onInstalled.addListener(async () => {
-  await setConstants();
+  setConstants();
   createMidnightAlarm();
   updateStorage();
   tryResetStreak();
@@ -429,9 +429,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "midnightAlarm") {
     console.log("Midnight alarm triggered!");
     try {
-      await updateStorage();
-      await createMidnightAlarm();
-      await tryResetStreak();
+        updateStorage();
+        createMidnightAlarm();
+        tryResetStreak();
     } catch (error) {
       console.error("Error handling midnight alarm:", error);
     }

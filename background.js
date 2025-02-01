@@ -418,6 +418,7 @@ async function tryResetStreak() {
   
     if (lastSubmissionMidnight < yesterdayMidnight) {
       await chrome.storage.local.set({ currentStreak: 0 });
+      console.log("You lost your streak");
     }
   
     console.log("From Try Reset Streak");

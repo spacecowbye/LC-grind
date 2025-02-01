@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "LC grind" ,
+  "name": "LC Gqrind" ,
   "version": "1.0",
   "description": "A meme extension forcing you to solve Leetcode POTD before you can browse.",
   "permissions": [
@@ -17,9 +17,7 @@
   ],
   "action": {
     "default_icon": {
-    "16": "assets/image.png",
-    "48": "assets/image.png",
-    "128": "assets/image.png"
+    "128": "assets/image28.png"
   },
     "default_popup": "popup.html"
   },
@@ -32,9 +30,7 @@
     "js": ["content.js", "successModal.js","failureModal.js"]
   }],
   "icons": {
-  "16": "assets/image.png",
-  "48": "assets/image.png",
-  "128": "assets/image.png"
+  "128": "assets/image28.png"
 }
 }
 

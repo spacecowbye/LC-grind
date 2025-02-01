@@ -1,15 +1,17 @@
 function createFailureModal() {
-    const failureSayings = [  
-        "Expected: 42, Your Output: null. So close!",  
-        "Passed 5/5 sample cases! Failed 98/100 hidden cases. Classic.",  
-        "Edge cases? Never heard of her.",  
-        "Your solution is O(n^n)... but at least it runs!",  
-        "Runtime Error? Time to flip burgers.",  
-        "Beats 100% of submissions... in memory usage. Congrats?",    
-        "Memory Limit Exceeded? Just buy more RAM!",  
-        "Brute force worked? Time to buy a lottery ticket.",  
-        "Wrong Answer? Yeah, time to switch majors",  
-    ];  
+    const failureSayings = [
+        "Expected: 42, Your Output: null. So close!",
+        "Passed 5/5 sample cases! Failed 98/100 hidden cases. Classic.",
+        "Edge cases? Never heard of her.",
+        "Runtime Error? Time to flip burgers.",
+        "Wrong Answer? Yeah, time to switch majors.",
+        "LeetCode failed? Time to brush up on burger-flipping algorithms.",
+        "Failed LeetCode? Hope McDonald's is hiring.",
+        "At this rate, you’ll be debugging cash registers instead of code.",
+        "LeetCode failed? Congrats, you've unlocked the 'Unpaid Internship' achievement!",
+        "With these skills, you'll be writing SQL queries for your McDonald’s shift schedule.",
+        "Your job prospects just took a segmentation dump."
+    ];
     
     
     const randomSaying = failureSayings[Math.floor(Math.random() * failureSayings.length)];

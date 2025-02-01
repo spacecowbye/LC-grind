@@ -406,23 +406,26 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 async function tryResetStreak() {
-    const result = await chrome.storage.local.get("lastSubmission");
-    const lastSubmissionDate = new Date(Number(result.lastSubmission));
+    try {
+      const result = await chrome.storage.local.get("lastSubmission");
+      const lastSubmissionDate = new Date(Number(result.lastSubmission));
+      
+      // Get current date & time
+      const now = new Date();
+      
+      // Set both to midnight to only compare full days
+      const lastSubmissionMidnight = new Date(lastSubmissionDate.setHours(0, 0, 0, 0));
+      const yesterdayMidnight = new Date(now.setHours(0, 0, 0, 0) - 86400000); // 86400000ms = 1 day
     
-    // Get current date & time
-    const now = new Date();
-    
-    // Set both to midnight to only compare full days
-    const lastSubmissionMidnight = new Date(lastSubmissionDate.setHours(0, 0, 0, 0));
-    const yesterdayMidnight = new Date(now.setHours(0, 0, 0, 0) - 86400000); // 86400000ms = 1 day
-  
-    if (lastSubmissionMidnight < yesterdayMidnight) {
+      if (lastSubmissionMidnight < yesterdayMidnight) {
+        await chrome.storage.local.set({ currentStreak: 0 });
+        console.log("You lost your streak");
+      }
+    } catch (error) {
+      console.error("Error checking/resetting streak:", error);
+      // Optionally reset streak on error to be safe
       await chrome.storage.local.set({ currentStreak: 0 });
-      console.log("You lost your streak");
     }
-  
-    console.log("From Try Reset Streak");
-    console.log({ lastSubmissionDate, yesterdayMidnight });
   }
   
 

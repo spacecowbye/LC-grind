@@ -16,10 +16,10 @@ LC-Grind transforms your browser into a LeetCode shrine—every single URL you v
 ![UI](screenshots/UI.png)  
 
 ### When you try to visit any website (Failure)  
-![Failure](screenshots/FAILURE.PNG)  
+![Failure](screenshots/FAILURE.png)  
 
 ### After solving the problem (Success)  
-![Success](screenshots/SUCCESS.PNG)  
+![Success](screenshots/SUCESS.png)  
 
 ## Permissions  
 This extension **only** redirects URLs to keep you focused. No data collection, no background tracking—just a simple tool to keep you coding.  
